@@ -1,0 +1,32 @@
+version: '3'
+services:
+  web:
+    image: 'nginx:alpine'
+    container_name: vk-ads-web
+    depends_on:
+      - php-fpm
+    volumes:
+      - './nginx/:/etc/nginx/conf.d'
+      - '../vk-ads-manager:/var/www'
+    ports:
+      - '8888:80'
+  db:
+    container_name: vk-ads-db
+    image: mysql:latest
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: secret
+      MYSQL_DATABASE: vk_ads
+    ports:
+      - '33062:3306'
+  php-fpm:
+    build: ./php-fpm
+    container_name: vk-ads-fpm
+    depends_on:
+      - db
+    volumes:
+      - '../vk-ads-manager:/var/www:cached'
+volumes:
+  db:
+    driver: local
