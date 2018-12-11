@@ -25,7 +25,7 @@
                         <hr>
                         <h5 class="card-title">Список кампаний</h5>
                         <div class="row">
-                            @foreach($cabinet->campaigns as $campaign)
+                            @forelse($cabinet->campaigns as $campaign)
                                 <div class="col-md-6 col-lg-4">
                                     <div class="card mb-2">
                                         <div class="card-header">
@@ -70,7 +70,13 @@
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="col-md-12">
+                                    <p>
+                                        Объявления синхронизируются, попробуйте обновить страницу через пару минут
+                                    </p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

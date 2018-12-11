@@ -25,7 +25,7 @@
                         <hr>
                         <h5 class="card-title">Список объявлений</h5>
                         <div class="row">
-                            @foreach($campaign->ads as $ad)
+                            @forelse($campaign->ads as $ad)
                                 <div class="col-md-6 col-lg-6">
                                     <div class="card mb-3">
                                         <div class="card-header">
@@ -97,7 +97,11 @@
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <p>
+                                    Объявления синхронизируются, попробуйте обновить страницу через пару минут
+                                </p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
