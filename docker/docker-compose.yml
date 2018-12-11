@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 services:
   web:
     image: 'nginx:alpine'
@@ -7,9 +7,9 @@ services:
       - php-fpm
     volumes:
       - './nginx/:/etc/nginx/conf.d'
-      - '../vk-ads-manager:/var/www'
+      - '../:/var/www'
     ports:
-      - '8888:80'
+      - '80:80'
   db:
     container_name: vk-ads-db
     image: mysql:latest
@@ -19,14 +19,14 @@ services:
       MYSQL_PASSWORD: secret
       MYSQL_DATABASE: vk_ads
     ports:
-      - '33062:3306'
+      - '3306'
   php-fpm:
     build: ./php-fpm
     container_name: vk-ads-fpm
     depends_on:
       - db
     volumes:
-      - '../vk-ads-manager:/var/www:cached'
+      - '../:/var/www:cached'
 volumes:
   db:
     driver: local
