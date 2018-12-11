@@ -27,6 +27,22 @@ services:
       - db
     volumes:
       - '../vk-ads-manager:/var/www:cached'
+  scheduler:
+    build: ./php-lite
+    container_name: vk-ads-scheduler
+    entrypoint:
+      - bash
+      - /usr/app/scheduler.sh
+    volumes:
+      - '../vk-ads-manager:/var/www'
+  queue:
+    build: ./php-lite
+    container_name: vk-ads-queue
+    entrypoint:
+      - bash
+      - /usr/app/queue.sh
+    volumes:
+      - '../vk-ads-manager:/var/www'
 volumes:
   db:
     driver: local

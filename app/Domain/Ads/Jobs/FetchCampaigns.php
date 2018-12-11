@@ -2,6 +2,7 @@
 
 use App\Domain\Ads\Cabinet;
 use App\Domain\Ads\Campaign;
+use App\Domain\Ads\Events\CampaignsFetched;
 use App\Domain\Users\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
@@ -16,14 +17,18 @@ class FetchCampaigns implements ShouldQueue
 
     /** @var Cabinet $cabinet */
     public $cabinet;
+    /** @var User $user */
+    public $user;
 
     /**
      * Create a new job instance.
      *
+     * @param User $user
      * @param Cabinet $cabinet
      */
-    public function __construct(Cabinet $cabinet)
+    public function __construct(User $user, Cabinet $cabinet)
     {
+        $this->user = $user;
         $this->cabinet = $cabinet;
     }
 
@@ -37,26 +42,27 @@ class FetchCampaigns implements ShouldQueue
      */
     public function handle(VKApiClient $client)
     {
-        $userOfCabinet = $this->cabinet->users()->whereNotNull('api_access_token')->first();
-
-        $campaigns = $client->ads()->getCampaigns($userOfCabinet->api_access_token, [
-            'account_id' => $this->cabinet->api_account_id
-        ]);
-        $campaigns = collect($campaigns);
-        $campaigns->map(function (array $camp) {
-            $campaign = [
-                'api_campaign_id' => $camp['id'],
-                'all_limit' => $camp['all_limit'],
-                'day_limit' => $camp['day_limit'],
-                'name' => $camp['name'],
-                'type' => $camp['type']
-            ];
-            $campaign = $this->cabinet->campaigns()->updateOrCreate([
-                'api_campaign_id' => $camp['id']
-            ], $campaign);
-            $campaign->touch();
-        });
-
-        dd($campaigns);
+        try {
+            $campaigns = $client->ads()->getCampaigns($this->user->api_access_token, [
+                'account_id' => $this->cabinet->api_account_id
+            ]);
+            $campaigns = collect($campaigns);
+            $campaigns->map(function (array $camp) {
+                $campaign = [
+                    'api_campaign_id' => $camp['id'],
+                    'all_limit' => $camp['all_limit'],
+                    'day_limit' => $camp['day_limit'],
+                    'name' => $camp['name'],
+                    'type' => $camp['type']
+                ];
+                $campaign = $this->cabinet->campaigns()->updateOrCreate([
+                    'api_campaign_id' => $camp['id']
+                ], $campaign);
+                $campaign->touch();
+            });
+            event(new CampaignsFetched($this->user));
+        } catch (\Exception $e) {
+            $this->fail($e);
+        }
     }
 }

@@ -29,7 +29,7 @@ class DeleteAds implements ShouldQueue
      * @param Cabinet $cabinet
      * @param Ad $ad
      */
-    public function __construct(string $token,  Ad $ad)
+    public function __construct(string $token, Ad $ad)
     {
         $this->token = $token;
         $this->ad = $ad;
@@ -46,10 +46,14 @@ class DeleteAds implements ShouldQueue
      */
     public function handle(VKApiClient $client)
     {
-        $this->ad->delete();
-        $response = $client->ads()->deleteAds($this->token, [
-            'account_id' => $this->cabinet->api_account_id,
-            'ids' => json_encode([$this->ad->api_ad_id])
-        ]);
+        try {
+            $this->ad->delete();
+            $client->ads()->deleteAds($this->token, [
+                'account_id' => $this->cabinet->api_account_id,
+                'ids' => json_encode([$this->ad->api_ad_id])
+            ]);
+        } catch (\Exception $e) {
+            $this->fail($e);
+        }
     }
 }

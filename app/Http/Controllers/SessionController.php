@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Users\User;
+use Illuminate\Auth\Events\Registered;
 use Laravel\Socialite\Facades\Socialite;
 use Auth;
 
@@ -27,18 +28,22 @@ class SessionController extends Controller
                 'api_access_token' => $social->accessTokenResponseBody['access_token'],
                 'avatar' => explode('?', $social->user['photo'])[0] ?? ''
             ]);
+            event(new Registered($user));
+        } else {
+            $user->api_access_token = $social->accessTokenResponseBody['access_token'];
         }
         auth()->login($user, true);
 
-        return redirect('/');
+        return redirect()->route('cabinets.index');
     }
 
     public function logout()
     {
+        $user = Auth::user();
+        $user->api_access_token = null;
+        $user->save();
         Auth::logout();
 
-        return redirect()
-            ->home();
+        return redirect()->home();
     }
-
 }

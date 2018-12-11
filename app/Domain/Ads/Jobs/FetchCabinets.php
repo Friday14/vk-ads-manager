@@ -1,6 +1,7 @@
 <?php namespace App\Domain\Ads\Jobs;
 
 use App\Domain\Ads\Cabinet;
+use App\Domain\Ads\Events\CabinetsFetched;
 use App\Domain\Users\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
@@ -36,31 +37,37 @@ class FetchCabinets implements ShouldQueue
      */
     public function handle(VKApiClient $client)
     {
-        $apiCabinets = collect($client->ads()->getAccounts($this->user->api_access_token));
+        try {
+            $apiCabinets = collect($client->ads()->getAccounts($this->user->api_access_token));
 
-        $alreadySavedCabinets = Cabinet::whereIn('api_account_id', $apiCabinets->pluck('account_id'))
-            ->get();
+            $alreadySavedCabinets = Cabinet::whereIn('api_account_id', $apiCabinets->pluck('account_id'))
+                ->get();
 
-        // create new cabinets
-        $syncCabinets = $apiCabinets->mapWithKeys(function (array $cab) use ($alreadySavedCabinets) {
-            $accountId = $cab['account_id'];
-            $cabinet = $alreadySavedCabinets->whereStrict('api_account_id', $accountId)->first();
+            // create new cabinets
+            $syncCabinets = $apiCabinets->mapWithKeys(function (array $cab) use ($alreadySavedCabinets) {
+                $accountId = $cab['account_id'];
+                $cabinet = $alreadySavedCabinets->whereStrict('api_account_id', $accountId)->first();
 
-            if (!$cabinet) {
-                $cabinet = new Cabinet();
-                $cabinet->api_account_id = $accountId;
-                $cabinet->name = $cab['account_name'];
-                $cabinet->type = $cab['account_type'];
-                $cabinet->status = $cab['account_status'];
-                $cabinet->save();
-            }
+                if (!$cabinet) {
+                    $cabinet = new Cabinet();
+                    $cabinet->api_account_id = $accountId;
+                    $cabinet->name = $cab['account_name'];
+                    $cabinet->type = $cab['account_type'];
+                    $cabinet->status = $cab['account_status'];
+                    $cabinet->save();
+                }
 
-            return [
-                $cabinet->id => [
-                    'role' => $cab['access_role']
-                ]
-            ];
-        });
-        $this->user->cabinets()->sync($syncCabinets);
+                return [
+                    $cabinet->id => [
+                        'role' => $cab['access_role']
+                    ]
+                ];
+            });
+            $this->user->cabinets()->sync($syncCabinets);
+
+            event(new CabinetsFetched($this->user));
+        } catch (\Exception $e) {
+            $this->fail($e);
+        }
     }
 }

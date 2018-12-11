@@ -20,7 +20,7 @@
                                     Список кабинетов
                                 </h4>
                                 <ul class="list-group">
-                                    @foreach($cabinets as $cabinet)
+                                    @forelse($cabinets as $cabinet)
                                         <a href="{{ route('cabinets.show', $cabinet) }}">
                                             <li class="list-group list-group-item">
                                                 {{ $cabinet->name }}
@@ -31,7 +31,15 @@
                                                 </div>
                                             </li>
                                         </a>
-                                    @endforeach
+
+                                    @empty
+                                        <div class="col-md-12">
+                                            <p>
+                                                Список кабинетов синхронизируются, попробуйте обновить страницу через пару
+                                                минут
+                                            </p>
+                                        </div>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>

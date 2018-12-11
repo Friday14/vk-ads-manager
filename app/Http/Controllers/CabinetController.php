@@ -22,6 +22,7 @@ class CabinetController extends Controller
 
     public function show(Cabinet $cabinet)
     {
+        $cabinet->load('campaigns.ads');
         return view('cabinets.show', compact('cabinet'));
     }
 

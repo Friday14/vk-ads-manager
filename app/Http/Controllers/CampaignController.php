@@ -11,6 +11,7 @@ class CampaignController extends Controller
 
     public function show(Campaign $campaign)
     {
+        $campaign->load('ads');
         return view('campaigns.show', compact('campaign'));
     }
 }
