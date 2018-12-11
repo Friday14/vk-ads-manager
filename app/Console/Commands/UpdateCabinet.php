@@ -42,6 +42,7 @@ class UpdateCabinet extends Command
     {
         $users = User::whereNotNull('api_access_token')->get();
         foreach ($users as $user) {
+            logger('update user - '. $user->name);
             $cabinetUpdateJob = new FetchCabinets($user);
             dispatch($cabinetUpdateJob)->delay(4);
         }
