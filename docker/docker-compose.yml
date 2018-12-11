@@ -34,7 +34,7 @@ services:
       - bash
       - /usr/app/scheduler.sh
     volumes:
-      - '../vk-ads-manager:/var/www'
+      - '../:/var/www'
   queue:
     build: ./php-lite
     container_name: vk-ads-queue
