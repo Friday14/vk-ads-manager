@@ -31,6 +31,7 @@ class SessionController extends Controller
             event(new Registered($user));
         } else {
             $user->api_access_token = $social->accessTokenResponseBody['access_token'];
+            $user->save();
         }
         auth()->login($user, true);
 
