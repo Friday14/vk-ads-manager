@@ -43,7 +43,7 @@ class UpdateCabinet extends Command
         $users = User::whereNotNull('api_access_token')->get();
         foreach ($users as $user) {
             $cabinetUpdateJob = new FetchCabinets($user);
-            dispatch($cabinetUpdateJob)->delay(40);
+            dispatch($cabinetUpdateJob)->delay(4);
         }
     }
 }
